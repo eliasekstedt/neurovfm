@@ -98,12 +98,14 @@ Code is released under the **MIT License**. Model weights are provided under **C
 ## Citation
 
 ```bibtex
-@misc{kondepudi2025healthlearningachievesgeneralist,
-  title={Health system learning achieves generalist neuroimaging models},
-  author={Akhil Kondepudi and Akshay Rao and Chenhui Zhao and Yiwei Lyu and Samir Harake and Soumyanil Banerjee and Rushikesh Joshi and Anna-Katharina Meissner and Renly Hou and Cheng Jiang and Asadur Chowdury and Ashok Srinivasan and Brian Athey and Vikas Gulani and Aditya Pandey and Honglak Lee and Todd Hollon},
-  year={2025},
-  eprint={2511.18640},
-  archivePrefix={arXiv},
-  primaryClass={cs.CV},
+@article{kondepudi2026health,
+  title={Health system learning enables generalist neuroimaging models},
+  author={Kondepudi, Akhil and Rao, Akshay and Zhao, Chenhui and Lyu, Yiwei and Harake, Samir and Banerjee, Soumyanil and Ogle, Jacob and Joshi, Rushikesh and Meissner, Anna-Katharina and Hou, Xinhai and Jiang, Cheng and Chowdury, Asadur and Srinivasan, Ashok and Athey, Brian and Gulani, Vikas and Pandey, Aditya and Lee, Honglak and Hollon, Todd},
+  journal={Nature Medicine},
+  volume={32},
+  pages={2831--2837},
+  year={2026},
+  doi={10.1038/s41591-026-04497-1},
+  url={https://doi.org/10.1038/s41591-026-04497-1}
 }
 ```
