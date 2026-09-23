@@ -18,5 +18,8 @@ CLAUDE.md
 lightning_logs/
 *bak
 
+
+ckpt.tar.gz
 **/ckpt/*
 **/.vscode/
+**/run/

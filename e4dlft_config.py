@@ -5,7 +5,7 @@ from types import SimpleNamespace
 cfg = SimpleNamespace()
 #fpath_config = Path('cktp/config.json')
 cfg.fpath_encoderStatedict = Path('ckpt/pytorch_model.bin')
-cfg.fpath_FCStatedict = Path('../mmMRI/_v5_NeuroVFM/run/report_better/22_07_36_00/model.pth')
+cfg.fpath_FCStatedict = Path('run/22_07_36_00/model.pth')
 
 cfg.vit_params = {
     "embed_dim":768,
