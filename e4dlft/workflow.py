@@ -45,7 +45,7 @@ class Workflow:
         encoder = Encoder(vit_params=vit_params, device=device, fpath_encoderStatedict=fpath_encoderStatedict)
         classifier = FCPart(embed_dim=768, dropout=0.5)
         classifier.load_state_dict(torch.load(fpath_FCStatedict))
-        e2e = End2End(encoder, classifier)
+        e2e = End2End(encoder, classifier).to(device)
         e2e.eval()
         return e2e
 
