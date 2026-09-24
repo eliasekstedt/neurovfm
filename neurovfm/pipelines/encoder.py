@@ -93,7 +93,7 @@ class EncoderPipeline:
         )
         
         # Forward pass
-        amp_dtype = torch.bfloat16 if False else torch.float32
+        amp_dtype = torch.bfloat16 if True else torch.float32
         with torch.amp.autocast(device_type=self.device, dtype=amp_dtype):
             embs = self.model(
                 tokens,
