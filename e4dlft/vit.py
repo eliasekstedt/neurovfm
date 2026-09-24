@@ -521,69 +521,7 @@ except ImportError:
 from neurovfm.models.pos_embed import PositionalEncoding3DWrapper
 from neurovfm.models.patch_embed import PatchEmbed
 
-
 class VisionPredictor(nn.Module):
-    """
-    Transformer-based predictor for masked token prediction.
-    
-    Predicts masked tokens given context tokens using transformer blocks.
-    Supports optional cross-attention with text embeddings via Perceiver blocks.
-    
-    Args:
-        vision_encoder_dim (int): Dimension of vision encoder outputs
-        dim (int): Internal embedding dimension
-        depth (int): Number of transformer blocks
-        dim_head (int): Dimension of each attention head
-        num_heads (int): Number of attention heads
-        prefix_len (int): Number of prefix tokens (e.g., CLS tokens)
-        text_encoder_dim (int, optional): Dimension of text encoder outputs
-        use_perceiver_block (bool): Whether to use Perceiver blocks for cross-attention.
-                                    Defaults to False.
-        mlp_ratio (float): Ratio of MLP hidden dim to embedding dim. Defaults to 4.0.
-        qkv_bias (bool): Whether to include bias in QKV projection. Defaults to True.
-        qk_scale (float, optional): Scale factor for QK attention
-        drop_rate (float): Dropout rate. Defaults to 0.0.
-        attn_drop_rate (float): Attention dropout rate. Defaults to 0.0.
-        drop_path_rate (float): Stochastic depth rate. Defaults to 0.0.
-        norm_layer: Normalization layer constructor. Defaults to LayerNorm.
-        act_layer: Activation layer constructor. Defaults to GELU.
-        use_flash_attn (bool): Whether to use flash attention. Defaults to True.
-        init_std (float): Standard deviation for weight initialization. Defaults to 0.02.
-        pos_emb_cf (Dict, optional): Position embedding configuration
-        use_mask_tokens (bool): Whether to use learnable mask tokens. Defaults to True.
-        num_mask_tokens (int): Number of different mask token embeddings. Defaults to 1.
-        zero_init_mask_tokens (bool): Whether to initialize mask tokens to zero.
-                                      Defaults to True.
-    
-    Example:
-        >>> import torch
-        >>> from neurovfm.models import VisionPredictor
-        >>> 
-        >>> # Create predictor
-        >>> predictor = VisionPredictor(
-        ...     vision_encoder_dim=768,
-        ...     dim=512,
-        ...     depth=4,
-        ...     dim_head=64,
-        ...     num_heads=8,
-        ...     prefix_len=0
-        ... )
-        >>> 
-        >>> # Predict masked tokens
-        >>> encoder_out = torch.randn(100, 768)  # Context tokens
-        >>> coords = torch.randn(150, 3)  # 3D coordinates
-        >>> info_cls_ctxt = (torch.arange(100), torch.tensor([0, 100]), 100)
-        >>> info_tgt = (torch.arange(100, 150), torch.tensor([0, 50]), 50)
-        >>> 
-        >>> predictions, mask = predictor(
-        ...     encoder_out, coords, info_cls_ctxt, info_tgt
-        ... )
-    
-    Notes:
-        - Implements masked prediction similar to MAE/JEPA architectures
-        - Can incorporate text conditioning via Perceiver blocks
-        - Supports multiple learnable mask token embeddings for diversity
-    """
     
     def __init__(
         self,
@@ -690,7 +628,7 @@ class VisionPredictor(nn.Module):
             self.pos_embed = None
 
     def fix_init_weight(self):
-        """Rescale weights for better initialization."""
+        #Rescale weights for better initialization
         def rescale(param, layer_id):
             param.div_(math.sqrt(2.0 * layer_id))
 
@@ -699,7 +637,6 @@ class VisionPredictor(nn.Module):
             rescale(block.mlp.fc2.weight.data, block_id + 1)
 
     def _init_weights(self, m):
-        """Initialize weights."""
         if isinstance(m, nn.Linear):
             trunc_normal_(m.weight, std=self.init_std)
             if isinstance(m, nn.Linear) and m.bias is not None:
@@ -726,26 +663,6 @@ class VisionPredictor(nn.Module):
         return_attn_weights: bool = False,
         return_latents: bool = False
     ):
-        """
-        Forward pass for masked prediction.
-        
-        Args:
-            vision_encoder_out (torch.Tensor): Encoder output features [N_context, vision_encoder_dim]
-            coords (torch.Tensor): 3D coordinates for all tokens [N_total, 3]
-            info_cls_ctxt (Tuple): Context tokens info (masks, cu_seqlens, max_seqlen)
-            info_tgt (Tuple): Target (masked) tokens info (masks, cu_seqlens, max_seqlen)
-            info_cls_ctxt_tgt (Tuple, optional): Combined context+target info
-            text_encoder_out (torch.Tensor, optional): Text embeddings [N_text, text_encoder_dim]
-            info_media (Tuple, optional): Text tokens info (masks, cu_seqlens, max_seqlen)
-            mask_index (int): Which mask token to use (for multi-mask). Defaults to 0.
-            use_flash_attn (bool): Whether to use flash attention. Defaults to True.
-            return_attn_weights (bool): Whether to return attention weights. Defaults to False.
-            return_latents (bool): Whether to return latent features. Defaults to False.
-        
-        Returns:
-            Tuple: (predictions, target_mask) where predictions are in vision encoder space
-                   Optional: attention weights or latents if requested
-        """
         masks_cls_ctxt, masks_tgt = info_cls_ctxt[0], info_tgt[0]
         assert (masks_cls_ctxt is not None) and (masks_tgt is not None), 'Cannot run predictor without mask indices'
 
@@ -898,72 +815,7 @@ class VisionPredictor(nn.Module):
         else:
             return self.to_vision_encoder(latents), toselect
 
-
 class VisionTransformer(TransformerEncoder):
-    """
-    Vision Transformer (ViT) for 3D medical imaging.
-    
-    Extends the base TransformerEncoder with support for volumetric patch embeddings
-    and 3D positional encodings. Designed for processing tokenized 3D medical images
-    where each token represents a 3D patch (e.g., 4x16x16 voxels).
-    
-    Args:
-        embed_dim (int): Embedding dimension
-        depth (int): Number of transformer blocks
-        num_heads (int): Number of attention heads
-        prefix_len (int): Number of prefix tokens (e.g., CLS)
-        token_dim (int): Dimension of input tokens. Defaults to 259 (256 + 3 for coords).
-        mlp_ratio (float): Ratio of MLP hidden dim to embedding dim. Defaults to 4.0.
-        qkv_bias (bool): Whether to include bias in QKV projection. Defaults to True.
-        drop_rate (float): Dropout rate. Defaults to 0.0.
-        attn_drop_rate (float): Attention dropout rate. Defaults to 0.0.
-        drop_path_rate (float): Stochastic depth rate. Defaults to 0.0.
-        embed_layer_cf (Dict): Embedding layer configuration with keys:
-                               - 'which': 'voxel' or 'linear'
-                               - 'params': parameters for embedding layer
-        norm_layer: Normalization layer constructor. Defaults to LayerNorm.
-        act_layer: Activation layer constructor. Defaults to GELU.
-        init_std (float): Standard deviation for weight initialization. Defaults to 0.02.
-        pos_emb_cf (Dict, optional): Position embedding configuration with keys:
-                                     - 'which': 'pe3d'
-                                     - 'params': parameters for positional encoding
-    
-    Example:
-        >>> import torch
-        >>> from neurovfm.models import VisionTransformer
-        >>> 
-        >>> # Create ViT model
-        >>> model = VisionTransformer(
-        ...     embed_dim=768,
-        ...     depth=12,
-        ...     num_heads=12,
-        ...     prefix_len=0,
-        ...     token_dim=1024,  # 1*4*16*16
-        ...     embed_layer_cf={
-        ...         'which': 'voxel',
-        ...         'params': {
-        ...             'patch_hw_size': 16,
-        ...             'patch_d_size': 4,
-        ...             'in_chans': 1,
-        ...             'embed_dim': 738
-        ...         }
-        ...     }
-        ... )
-        >>> 
-        >>> # Forward pass
-        >>> tokens = torch.randn(100, 1024)  # [N, token_dim]
-        >>> coords = torch.randn(100, 3)     # [N, 3] for 3D positions
-        >>> cu_seqlens = torch.tensor([0, 50, 100], dtype=torch.int32)
-        >>> 
-        >>> features = model(tokens, coords, cu_seqlens=cu_seqlens, max_seqlen=50)
-    
-    Notes:
-        - Supports both 'voxel' (PatchEmbed) and 'linear' embedding layers
-        - Uses 3D positional encodings
-        - Implements gradient checkpointing during training for memory efficiency
-        - Compatible with Flash Attention for efficient attention computation
-    """
-    
     def __init__(
         self,
         embed_dim: int,
@@ -1000,6 +852,11 @@ class VisionTransformer(TransformerEncoder):
             raise ImportError("FusedDense from flash_attn is required")
         
         # Token embedding layer
+        ###
+        self.token_embed = PatchEmbed(**embed_layer_cf["params"])
+        self.pos_embed = PositionalEncoding3DWrapper(**pos_emb_cf["params"])
+        ###
+        """
         if embed_layer_cf["which"] == "voxel":
             self.token_embed = PatchEmbed(**embed_layer_cf["params"])
         else:
@@ -1010,10 +867,12 @@ class VisionTransformer(TransformerEncoder):
                     self.token_embed = FusedDense(token_dim, embed_dim, bias=True)
             else:
                 self.token_embed = FusedDense(token_dim, embed_dim, bias=True)
+        """
 
         self.apply(self._init_weights)
         self.fix_init_weight()
 
+        """
         # Positional embedding
         if pos_emb_cf is not None:
             if pos_emb_cf["which"] == "pe3d":
@@ -1022,6 +881,7 @@ class VisionTransformer(TransformerEncoder):
                 raise ValueError(f"Positional embedding {pos_emb_cf.get('which', None)} not supported")
         else:
             self.pos_embed = None
+        """
         
     @torch.jit.ignore
     def no_weight_decay(self):
@@ -1039,23 +899,7 @@ class VisionTransformer(TransformerEncoder):
         use_flash_attn: bool = True,
         return_attn_weights: bool = False
     ):
-        """
-        Extract features from input tokens.
-        
-        Args:
-            x (torch.Tensor): Input tokens [N, token_dim]
-            coords (torch.Tensor): 3D coordinates [N, 3]
-            masks (torch.Tensor, optional): Mask for selecting tokens
-            masks_enc (torch.Tensor, optional): Additional encoder mask
-            cu_seqlens (torch.Tensor, optional): Cumulative sequence lengths [B+1]
-            max_seqlen (int, optional): Maximum sequence length
-            use_flash_attn (bool): Whether to use flash attention. Defaults to True.
-            return_attn_weights (bool): Whether to return attention weights. Defaults to False.
-        
-        Returns:
-            torch.Tensor: Output features [N, embed_dim]
-            OR Tuple[torch.Tensor, List]: (features, attention_weights) if return_attn_weights=True
-        """
+
         if isinstance(self.token_embed, PatchEmbed):
             # Apply masks if provided
             if masks is not None:
@@ -1181,18 +1025,6 @@ class VisionTransformer(TransformerEncoder):
         use_flash_attn: bool = True,
         return_attn_weights: bool = False
     ):
-        """
-        Extract penultimate layer features (before final layer norm).
-        
-        Useful for certain training objectives that require unnormalized features.
-        
-        Args:
-            Same as forward_features
-        
-        Returns:
-            torch.Tensor: Penultimate features [N, embed_dim]
-            OR Tuple[torch.Tensor, List]: (features, attention_weights) if return_attn_weights=True
-        """
         if isinstance(self.token_embed, PatchEmbed):
             # Apply masks if provided
             if masks is not None:

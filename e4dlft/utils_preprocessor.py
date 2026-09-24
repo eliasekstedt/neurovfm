@@ -1,8 +1,7 @@
 
-from pathlib import Path
 import numpy as np
 import SimpleITK as sitk
-from typing import Tuple #List, Optional
+from typing import Tuple
 
 #def load_image(fpath, preprocess=True):
 def load_image(fpath, preprocess=True):

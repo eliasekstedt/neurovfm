@@ -118,7 +118,7 @@ class StudyPreprocessor:
         
         for img_path in image_paths:
             # Load and preprocess image (reorient, resample, crop to patch multiples)
-            img_sitk = load_image(str(img_path), preprocess=True)
+            img_sitk = load_image(img_path, preprocess=True)
             if img_sitk is None:
                 logging.warning(f"Failed to load {img_path}, skipping")
                 continue

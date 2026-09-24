@@ -2,19 +2,32 @@
 import torch
 from e4dlft.vit import VisionTransformer
 from e4dlft.utils import NormalizationModule
-#from e4dlft.preprocessor import StudyPreprocessor
 
-def freeze(model):
-    for param in model.parameters():
+def freeze(vit):
+    for param in vit.parameters():
         param.requires_grad = False
-    return model
+    return vit
 
-class EncoderLine:
-    def __init__(self, model, normstats, device):
+class Encoder:
+    def __init__(self, vit_params, device, fpath_encoderStatedict):
+        vit = self.load_vit(vit_params, fpath_encoderStatedict)
+        normstats = [
+            [0.3141, 0.4139, 0.3184, 0.2719],  # means: [mri, brain, blood, bone]
+            [0.2623, 0.4059, 0.3605, 0.1875],   # stds
+        ]
         self.device = device
-        self.norm_module = NormalizationModule(custom_stats_list=normstats).to(device)
-        self.model = model.to(self.device)
-        self.model = freeze(model)
+        self.norm_module = NormalizationModule(custom_stats_list=normstats).to(self.device)
+        self.vit = vit.to(self.device)
+        self.vit = freeze(vit)
+
+    def load_vit(self, vit_params, fpath_encoderStatedict):
+        vit = VisionTransformer(**vit_params)
+        state_dict = torch.load(fpath_encoderStatedict, map_location="cpu")
+        if "state_dict" in state_dict:
+            print('entered if')
+            state_dict = state_dict["state_dict"]
+        vit.load_state_dict(state_dict, strict=False)
+        return vit
 
     def embed(self, batch):
         tokens = batch["img"].to(self.device)
@@ -37,9 +50,9 @@ class EncoderLine:
             sizes=batch.get("size")
         )
 
-        amp_dtype = torch.bfloat16 if True else torch.float32
+        amp_dtype = torch.bfloat16 if False else torch.float16#torch.float32
         with torch.amp.autocast(device_type=self.device, dtype=amp_dtype):
-            embs = self.model(
+            embs = self.vit(
                 tokens,
                 coords,
                 masks=masks,
@@ -49,37 +62,4 @@ class EncoderLine:
             )
         
         return embs
-
-        
-def get_encoder(vit_params, device, fpath_weights):
-    normstats = [
-        [0.3141, 0.4139, 0.3184, 0.2719],  # means: [mri, brain, blood, bone]
-        [0.2623, 0.4059, 0.3605, 0.1875],   # stds
-    ]
-
-    vit = VisionTransformer(**vit_params)
-
-    state_dict = torch.load(fpath_weights, map_location="cpu")
-    if "state_dict" in state_dict:
-        print('entered if')
-        state_dict = state_dict["state_dict"]
-    vit.load_state_dict(state_dict, strict=False)
-
-    encoder = EncoderLine(
-        model=vit,
-        normstats=normstats,
-        device=device,
-    )
-    return encoder
-
-
-"""
-from e4dlft_config import *
-encoder = get_encoder(
-    vit_params=cfg.vit_params,
-    device='cuda:0',
-    fpath_weights=cfg.fpath_weights,
-)
-"""
-
 

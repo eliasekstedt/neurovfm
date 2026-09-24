@@ -1,6 +1,5 @@
 
 import pandas as pd
-from pathlib import Path
 import torch.nn as nn
 import torch
 
@@ -56,14 +55,14 @@ from e4dlft_run import get_encoder
 e4dlft_encoder = get_encoder(
     vit_params=cfg.vit_params,
     device='cuda:0',
-    fpath_weights=cfg.fpath_weights,
+    fpath_encoderStatedict=cfg.fpath_encoderStatedict,
 )
 
-fpath_ann = Path('../mmMRI/_v5_NeuroVFM/run/report_better/22_07_36_00/model.pth')
-fpath_evaldata = Path('../mmMRI/_v5_NeuroVFM/run/report_better/22_07_36_00/eval.csv')
+fpath_ann = cfg.fpath_FCStatedict
+fpath_evaldata = cfg.fpath_evalData
 ann = Model(embed_dim=768, dropout=0.5)
 ann.load_state_dict(torch.load(fpath_ann))
-mod = 't1ce'
+mod = cfg.modality
 
 logits_lst = []
 for encoder in [std_encoder, e4dlft_encoder]:

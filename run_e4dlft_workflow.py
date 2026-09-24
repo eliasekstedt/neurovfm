@@ -1,9 +1,12 @@
 
-from e4dlft import *
+from e4dlft_config import *
 
 from e4dlft.workflow import Workflow
 Workflow(
-    device=cfg.device,
-    fpath_statedictEncoder=cfg.fpath_encoderStatedict,
-    fpath_statedictFC=cfg.fpath_FCStatedict,
+    device='cuda:0',
+    modality=cfg.modality,
+    vit_params=cfg.vit_params,
+    dpath_nii=cfg.dpath_nii,
+    fpath_encoderStatedict=cfg.fpath_encoderStatedict,
+    fpath_FCStatedict=cfg.fpath_FCStatedict,
 )

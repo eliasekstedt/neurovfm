@@ -5,7 +5,11 @@ from types import SimpleNamespace
 cfg = SimpleNamespace()
 #fpath_config = Path('cktp/config.json')
 cfg.fpath_encoderStatedict = Path('ckpt/pytorch_model.bin')
-cfg.fpath_FCStatedict = Path('run/22_07_36_00/model.pth')
+cfg.fpath_FCStatedict = Path('one_run/model.pth')
+cfg.fpath_evalData = Path('one_run/eval.csv')
+cfg.dpath_nii = Path('../data/brats19/HGG')
+
+cfg.modality = 't1ce'
 
 cfg.vit_params = {
     "embed_dim":768,
