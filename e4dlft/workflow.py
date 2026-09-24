@@ -28,7 +28,6 @@ def compare(encoder, device, modality, preproc, dpath_nii, fpath_FCStatedict):
             batch = proc(fpath_nii, 'mri')
         logits = e2e(batch)
         logits_lst.append(logits)
-        continue
 
     for logits in logits_lst:
         print(logits.shape)
