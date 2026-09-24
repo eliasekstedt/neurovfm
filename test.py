@@ -1,5 +1,5 @@
 
-from config import *
+from e4dlft_config import *
 
 def test0():
     import torch
@@ -19,7 +19,15 @@ def test1():
         print(condition, fpath)
         fpath = fpath.parent
 
-test1()
+
+def test2():
+    import pandas as pd
+    id = pd.read_csv(cfg.fpath_FCStatedict.parent / 'eval.csv')['id'].to_list()[0]
+    print(id)
+
+test2()
+
 """
+test1()
 test0()
 """
