@@ -5,7 +5,7 @@ import io
 
 from e4dlft.preprocessor import StudyPreprocessor
 from e4dlft.encoder import Encoder
-from e4dlft.end2end import End2End, FCPart
+from e4dlft.end2end import End2End, FCPart, End2EndForCaptum
 
 def compare(encoder, device, modality, preproc, dpath_nii, fpath_FCStatedict):
     def get_standards():
@@ -39,7 +39,38 @@ class Workflow:
         preproc = StudyPreprocessor()
         #compare(encoder, device, modality, preproc, dpath_nii, fpath_FCStatedict)
         e2e = self.build_e2e(device, vit_params, fpath_encoderStatedict, fpath_FCStatedict)
-        self.readiness_test(e2e, modality, preproc, dpath_nii)
+        #self.readiness_test(e2e, modality, preproc, dpath_nii)
+        self.run_captum(e2e, modality, preproc, dpath_nii)
+
+    def run_captum(self, e2e, modality, preproc, dpath_nii):
+        id = 'BraTS19_CBICA_AVJ_1'
+        fpath_nii = dpath_nii / id / f'{id}_{modality}.nii.gz'
+        with contextlib.redirect_stdout(io.StringIO()):
+            batch = preproc(fpath_nii, 'mri')
+
+        e2e4captum = End2EndForCaptum(e2e, batch)
+
+        x = batch['img'].clone()
+        baseline = torch.zeros_like(x)
+
+
+        if False:
+            from captum.attr import DeepLift
+            explainer = DeepLift(e2e4captum)
+            attr = explainer.attribute(
+                inputs=x,
+                baselines=baseline
+            )
+        if True:
+            from captum.attr import IntegratedGradients
+            explainer = IntegratedGradients(e2e4captum)
+            attr = explainer.attribute(
+                inputs=x,
+                baselines=baseline,
+            )
+
+        print(attr.shape)
+        print(attr.abs().sum())
 
     def build_e2e(self, device, vit_params, fpath_encoderStatedict, fpath_FCStatedict):
         encoder = Encoder(vit_params=vit_params, device=device, fpath_encoderStatedict=fpath_encoderStatedict)
@@ -48,7 +79,7 @@ class Workflow:
         e2e = End2End(encoder, classifier).to(device)
         e2e.eval()
         return e2e
-
+"""
     def readiness_test(self, e2e, modality, preproc, dpath_nii):
         def test_deeplift_ready(end2end, batch):
             x = batch["img"].clone().requires_grad_(True)
@@ -72,7 +103,11 @@ class Workflow:
         with contextlib.redirect_stdout(io.StringIO()):
             batch = preproc(fpath_nii, 'mri')
 
+
+
+
         test_deeplift_ready(e2e, batch)
+"""
 
 
 
