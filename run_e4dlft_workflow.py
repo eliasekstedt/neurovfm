@@ -14,4 +14,17 @@ Workflow(
 """
 figure out exactly how NeuroVFM uses the other values in
 a batch; coords, series_cu_seqlens, etc
+dict_keys([
+    'img',
+    'coords',
+    'series_cu_seqlens',
+    
+    'series_masks_indices',
+    'series_max_len',
+    'study_cu_seqlens',
+    'study_max_len',
+    'mode',
+    'path',
+    'size'
+])
 """

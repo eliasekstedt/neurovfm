@@ -42,32 +42,46 @@ class Workflow:
         #self.readiness_test(e2e, modality, preproc, dpath_nii)
         self.run_captum(e2e, modality, preproc, dpath_nii)
 
+    def process_batch_for_captum(self, batch, device):
+        n = batch["img"].shape[0]
+        batch["series_max_len"] = n
+        batch["study_max_len"] = n
+        batch["coords"] = torch.cat([batch["coords"], batch["coords"]])
+        batch["series_cu_seqlens"] = torch.tensor([0, n, 2*n], dtype=torch.int32, device=device)
+        batch["study_cu_seqlens"] = batch['series_cu_seqlens'].clone()
+        return batch, n
+        #batch["study_cu_seqlens"] = torch.tensor([0, n, 2*n], dtype=torch.int32, device=device)
+
     def run_captum(self, e2e, modality, preproc, dpath_nii):
         id = 'BraTS19_CBICA_AVJ_1'
         fpath_nii = dpath_nii / id / f'{id}_{modality}.nii.gz'
         with contextlib.redirect_stdout(io.StringIO()):
             batch = preproc(fpath_nii, 'mri')
+        #print(batch.keys())
+        #raise SystemExit
 
         e2e4captum = End2EndForCaptum(e2e, batch)
 
+
         x = batch['img'].clone()
         baseline = torch.zeros_like(x)
+        
+        ###
+        batch, n = self.process_batch_for_captum(batch)
+        ###
 
+        out = e2e4captum(x)
+        print("MANUAL OUT")
+        print(out.shape)
+        print(out)
+        raise SystemExit
 
-        if False:
-            from captum.attr import DeepLift
-            explainer = DeepLift(e2e4captum)
-            attr = explainer.attribute(
-                inputs=x,
-                baselines=baseline
-            )
-        if True:
-            from captum.attr import IntegratedGradients
-            explainer = IntegratedGradients(e2e4captum)
-            attr = explainer.attribute(
-                inputs=x,
-                baselines=baseline,
-            )
+        from captum.attr import DeepLift
+        explainer = DeepLift(e2e4captum)
+        attr = explainer.attribute(
+            inputs=x,
+            baselines=baseline,
+        )
 
         print(attr.shape)
         print(attr.abs().sum())
