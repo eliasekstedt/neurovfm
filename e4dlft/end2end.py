@@ -59,26 +59,10 @@ class End2EndForCaptum(nn.Module):
     def forward(self, x):
         batch = dict(self.batch_template)
         batch["img"] = x
-
-
-        ###
-        n = self.batch_template["img"].shape[0]
-        batch["coords"] = torch.cat(
-            [batch["coords"], batch["coords"]],
-            )
-        batch["series_cu_seqlens"] = torch.tensor(
-            [0, n, 2*n],
-            dtype=torch.int32,
-            device=batch["coords"].device,
-        )
-        batch["series_max_len"] = n
-        batch["study_cu_seqlens"] = torch.tensor(
-            [0, n, 2*n],
-            dtype=torch.int32,
-            device=batch["coords"].device,
-        )
-        batch["study_max_len"] = n
-        ###
+        out = self.end2end(batch)
+        print("FINAL RETURN SHAPE:", out.shape)
+        return out
+        """
         print("img:", batch["img"].shape)
         print("coords:", batch["coords"].shape)
         print("series_cu_seqlens:", batch["series_cu_seqlens"])
@@ -87,12 +71,5 @@ class End2EndForCaptum(nn.Module):
         print("study_max_len:", batch["study_max_len"])
         print(batch["series_cu_seqlens"])
         print(batch["study_cu_seqlens"])
-        """
         raise SystemExit
         """
-        out = self.end2end(batch)
-
-        print("FINAL RETURN SHAPE:", out.shape)
-
-        #raise SystemExit
-        return out
