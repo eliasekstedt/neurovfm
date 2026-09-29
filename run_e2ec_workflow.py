@@ -5,9 +5,24 @@ from e2ec.workflow import Workflow
 Workflow(
     device='cuda:0',
     modality=cfg.modality,
-    vit_params=cfg.vit_params,
-    dpath_nii=cfg.dpath_nii,
-    fpath_encoderStatedict=cfg.fpath_encoderStatedict,
+    dpath_vec=cfg.dpath_vec,
     fpath_FCStatedict=cfg.fpath_FCStatedict,
 )
 
+"""
+when implementing a new method, dont
+go in completely blind. try to have
+an overview at least so that you know
+things like what inputs and outputs
+are expected and what they mean.
+
+!keep this bord.
+
+...
+"""
+
+"""
+* figure out how to reverse the dissassembly
+* continue deeplift vid
+* ...
+"""
