@@ -5,7 +5,7 @@ import io
 
 from e4dlft.preprocessor import StudyPreprocessor
 from e4dlft.encoder import Encoder
-from e4dlft.end2end import End2End, FCPart, End2EndForCaptum
+from e4dlft.end2end import End2End, FCPart, Cap4
 
 def compare(encoder, device, modality, preproc, dpath_nii, fpath_FCStatedict):
     def get_standards():
@@ -42,49 +42,46 @@ class Workflow:
         #self.readiness_test(e2e, modality, preproc, dpath_nii)
         self.run_captum(e2e, modality, preproc, dpath_nii)
 
-    def process_batch_for_captum(self, batch, device):
-        n = batch["img"].shape[0]
-        batch["series_max_len"] = n
-        batch["study_max_len"] = n
-        batch["coords"] = torch.cat([batch["coords"], batch["coords"]])
-        batch["series_cu_seqlens"] = torch.tensor([0, n, 2*n], dtype=torch.int32, device=device)
-        batch["study_cu_seqlens"] = batch['series_cu_seqlens'].clone()
-        return batch, n
-        #batch["study_cu_seqlens"] = torch.tensor([0, n, 2*n], dtype=torch.int32, device=device)
-
     def run_captum(self, e2e, modality, preproc, dpath_nii):
-        id = 'BraTS19_CBICA_AVJ_1'
-        fpath_nii = dpath_nii / id / f'{id}_{modality}.nii.gz'
-        with contextlib.redirect_stdout(io.StringIO()):
-            batch = preproc(fpath_nii, 'mri')
-        #print(batch.keys())
-        #raise SystemExit
+        def build_batch_4cap(fpath_nii):
+            with contextlib.redirect_stdout(io.StringIO()):
+                batch = preproc(fpath_nii, 'mri')
+            img = batch['img'].clone()
+            _sub = torch.zeros_like(img)
+            with contextlib.redirect_stdout(io.StringIO()):
+                meta = preproc([fpath_nii]*2, 'mri')
+            
+            ori = dict(meta)
+            ori['img'] = img
+            sub = dict(meta)
+            sub['img'] = _sub
+            return ori, sub
 
-        e2e4captum = End2EndForCaptum(e2e, batch)
 
+        ids = [
+            'BraTS19_CBICA_AVJ_1',
+            'BraTS19_2013_14_1',
+            'BraTS19_CBICA_ATD_1',
+        ]
+        for id in ids:
+            fpath_nii = dpath_nii / id / f'{id}_{modality}.nii.gz'
 
-        x = batch['img'].clone()
-        baseline = torch.zeros_like(x)
-        
-        ###
-        batch, n = self.process_batch_for_captum(batch)
-        ###
+            ori_batch, sub_batch = build_batch_4cap(fpath_nii)
 
-        out = e2e4captum(x)
-        print("MANUAL OUT")
-        print(out.shape)
-        print(out)
-        raise SystemExit
+            cap4 = Cap4(e2e, ori_batch)
 
-        from captum.attr import DeepLift
-        explainer = DeepLift(e2e4captum)
-        attr = explainer.attribute(
-            inputs=x,
-            baselines=baseline,
-        )
+            from captum.attr import DeepLift
+            explainer = DeepLift(cap4)
+            attr = explainer.attribute(
+                inputs=ori_batch['img'],
+                baselines=sub_batch['img'],
+            )
 
-        print(attr.shape)
-        print(attr.abs().sum())
+            from pathlib import Path
+            torch.save(attr.cpu(), Path('../data/brats19_deeplift_attr_examples') / f'HGG_{id}.pt')
+
+            print(attr.shape)
+            print(attr.abs().sum())
 
     def build_e2e(self, device, vit_params, fpath_encoderStatedict, fpath_FCStatedict):
         encoder = Encoder(vit_params=vit_params, device=device, fpath_encoderStatedict=fpath_encoderStatedict)

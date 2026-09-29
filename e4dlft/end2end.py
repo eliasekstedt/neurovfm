@@ -24,52 +24,72 @@ class FCPart(nn.Module):
 class End2End(nn.Module):
     def __init__(self, encoder, classifier):
         super().__init__()
+        self.encoder = encoder
+        self.classifier = classifier
+
+    def forward(self, batch):
+        #print(batch['img'].shape)
+        #print(batch['series_cu_seqlens'])
+        #raise SystemExit
+        tokens = self.encoder.embed(batch)   # [N,768]
+        tokens = self.reconstruct(tokens, batch)
+        tokens = tokens.mean(dim=1).float()#.unsqueeze(0)
+        logit = self.classifier(tokens)
+        return logit
+
+    def reconstruct(self, tokens, batch):
+        cu = batch["series_cu_seqlens"]
+        studies = [
+            tokens[cu[i]:cu[i+1]]
+            for i in range(len(cu)-1)
+        ]
+        [print(s.shape) for s in studies]
+        studies = torch.stack(studies, dim=0)
+        print(studies.shape)
+        return studies
+
+class Cap4(nn.Module):
+    def __init__(self, e2e, meta):
+        super().__init__()
+        self.e2e = e2e
+        self.meta = meta
+
+    def forward(self, img):
+        batch = dict(self.meta)
+        batch['img'] = img
+        #print(img.shape)
+        #raise SystemExit
+        logit = self.e2e(batch)   # [N,768]
+        print(f"logit from Cap4: {logit}")
+        return logit
+
+
+"""
+class End2End(nn.Module):
+    def __init__(self, encoder, classifier):
+        super().__init__()
 
         self.encoder = encoder
         self.classifier = classifier
 
     def forward(self, batch):
         # NeuroVFM token embeddings
+        print('hejhopp_0')
+        print(batch.keys())
+        print(batch['img'].shape)
         tokens = self.encoder.embed(batch)   # [N,768]
+        print('___ *vec* ___')
+        #print(tokens)
+        print(tokens.shape)
 
-        baseline_tokens = tokens[:208]
-        input_tokens = tokens[208:]
-
-        baseline_vec = baseline_tokens.mean(dim=0).float().unsqueeze(0)
-        input_vec = input_tokens.mean(dim=0).float().unsqueeze(0)
-
-        baseline_logit = self.classifier(baseline_vec)
-        input_logit = self.classifier(input_vec)
-
-        return torch.cat([baseline_logit, input_logit], dim=1)
-        """
-        # Same pooling used during training
         vec = tokens.mean(dim=0).float().unsqueeze(0)
+        print('___ *vec* ___')
+        #print(vec)
+        print(vec.shape)
 
-        logits = self.classifier(vec)        # [1,1]
-        return logits
-        """
-
-class End2EndForCaptum(nn.Module):
-    def __init__(self, end2end, batch_template):
-        super().__init__()
-        self.end2end = end2end
-        self.batch_template = batch_template
-
-    def forward(self, x):
-        batch = dict(self.batch_template)
-        batch["img"] = x
-        out = self.end2end(batch)
-        print("FINAL RETURN SHAPE:", out.shape)
-        return out
-        """
-        print("img:", batch["img"].shape)
-        print("coords:", batch["coords"].shape)
-        print("series_cu_seqlens:", batch["series_cu_seqlens"])
-        print("series_max_len:", batch["series_max_len"])
-        print("study_cu_seqlens:", batch["study_cu_seqlens"])
-        print("study_max_len:", batch["study_max_len"])
-        print(batch["series_cu_seqlens"])
-        print(batch["study_cu_seqlens"])
-        raise SystemExit
-        """
+        logit = self.classifier(vec)
+        print('___ *logit* ___')
+        print(logit)
+        print(logit.shape)
+        return logit
+"""

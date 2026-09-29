@@ -25,9 +25,25 @@ def test2():
     id = pd.read_csv(cfg.fpath_FCStatedict.parent / 'eval.csv')['id'].to_list()[0]
     print(id)
 
-test2()
+def test3():
+    from pathlib import Path
+    id = 'BraTS19_CBICA_AVJ_1'
+    dpath_nii = Path('../data/brats19/HGG/')
+    assert dpath_nii.exists()
+    modality = 't1ce'
+    fpath_nii = dpath_nii / id / f'{id}_{modality}.nii.gz'
+
+    import nibabel as nib
+    t = nib.load(fpath_nii)
+    print(t.shape)
+    print(240*240*155)
+    print(208*1024)
+    print(208*1024/(240*240*155))
+
+test3()
 
 """
+test2()
 test1()
 test0()
 """
