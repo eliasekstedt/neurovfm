@@ -134,54 +134,28 @@ class StudyPreprocessor:
             
             # For CT, we'll use all three windows and stack them
             # For MRI, we have a single array
-            if modality.lower() == 'ct':
-                # Process each CT window separately
-                for window_idx, img_arr in enumerate(img_arrs):
-                    # Tokenize with background filtering
-                    tokens, coords, filtered = tokenize_volume(
-                        img_arr,
-                        background_mask,
-                        patch_size=self.patch_size,
-                        remove_background=self.remove_background
-                    )
-                    
-                    # Convert to tensors
-                    tokens_tensor = torch.from_numpy(tokens).float()
-                    coords_tensor = torch.from_numpy(coords).long()
-                    
-                    all_tokens.append(tokens_tensor)
-                    all_coords.append(coords_tensor)
-                    series_lengths.append(len(tokens_tensor))
-                    mode_list.append(modality)
-                    if window_idx == 0:
-                        path_list.append(f"{img_path.stem}_BrainWindow")
-                    elif window_idx == 1:
-                        path_list.append(f"{img_path.stem}_BloodWindow")
-                    else:
-                        path_list.append(f"{img_path.stem}_BoneWindow")
-                    size_list.append(img_arr.shape)
-            else:
-                # MRI: single array
-                img_arr = img_arrs[0]
-                
-                # Tokenize with background filtering
-                tokens, coords, filtered = tokenize_volume(
-                    img_arr,
-                    background_mask,
-                    patch_size=self.patch_size,
-                    remove_background=self.remove_background
-                )
-                
-                # Convert to tensors
-                tokens_tensor = torch.from_numpy(tokens).float()
-                coords_tensor = torch.from_numpy(coords).long()
-                
-                all_tokens.append(tokens_tensor)
-                all_coords.append(coords_tensor)
-                series_lengths.append(len(tokens_tensor))
-                mode_list.append(modality)
-                path_list.append(str(img_path))
-                size_list.append(img_arr.shape)
+            
+            # MRI: single array
+            img_arr = img_arrs[0]
+            
+            # Tokenize with background filtering
+            tokens, coords, filtered = tokenize_volume(
+                img_arr,
+                background_mask,
+                patch_size=self.patch_size,
+                remove_background=self.remove_background
+            )
+            
+            # Convert to tensors
+            tokens_tensor = torch.from_numpy(tokens).float()
+            coords_tensor = torch.from_numpy(coords).long()
+            
+            all_tokens.append(tokens_tensor)
+            all_coords.append(coords_tensor)
+            series_lengths.append(len(tokens_tensor))
+            mode_list.append(modality)
+            path_list.append(str(img_path))
+            size_list.append(img_arr.shape)
         
         if len(all_tokens) == 0:
             raise ValueError(f"No valid volumes loaded from {study_path}")

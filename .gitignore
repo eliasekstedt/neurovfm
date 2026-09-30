@@ -24,3 +24,5 @@ ckpt.tar.gz
 **/.vscode/
 **/run/
 **/one_run/
+**/*.nii.gz
+**/*.nii
