@@ -90,6 +90,8 @@ class Workflow:
         e2e = End2End(encoder, classifier).to(device)
         e2e.eval()
         return e2e
+
+
 """
     def readiness_test(self, e2e, modality, preproc, dpath_nii):
         def test_deeplift_ready(end2end, batch):

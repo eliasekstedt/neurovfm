@@ -10,12 +10,3 @@ Workflow(
     fpath_encoderStatedict=cfg.fpath_encoderStatedict,
     fpath_FCStatedict=cfg.fpath_FCStatedict,
 )
-
-"""
-
-
-how can the classifier work when each element in the input vector
-is the mean of the same element from each patch?
-
-
-"""
