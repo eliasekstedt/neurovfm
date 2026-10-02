@@ -37,7 +37,10 @@ class Workflow:
             a_batch = DownProcess(fpath_nii).batch
             meta = get_meta(a_batch)
             b_batch = dict(meta)
-            b_batch['img'] = DownProcess(fpath_counter).batch['img']
+            if fpath_counter is None:
+                b_batch['img'] = torch.zeros_like(a_batch['img'])
+            else:
+                b_batch['img'] = DownProcess(fpath_counter).batch['img']
             return a_batch, b_batch, meta
 
 
@@ -52,6 +55,14 @@ class Workflow:
         )
         attr = torch.where(attr == 0, attr.min(), attr)
         attr = (attr - attr.min()) / (attr.max() - attr.min())
+
+        ###
+        assert 'brats19' not in str(fpath_nii)
+        dpath_attr = fpath_nii.parent
+        print(dpath_attr); raise SystemExit
+        torch.save(attr, dpath_attr / f'{id}_{id}.pt')
+        ###
+
         meta['img'] = attr
         return meta
 
@@ -63,37 +74,6 @@ class Workflow:
         model = End2End(encoder, classifier).to(device)
         model.eval()
         return model
-
-
-"""
-    def readiness_test(self, e2e, modality, preproc, dpath_nii):
-        def test_deeplift_ready(end2end, batch):
-            x = batch["img"].clone().requires_grad_(True)
-            assert x.requires_grad
-
-            # Can autograd see the output?
-            batch2 = dict(batch)
-            batch2["img"] = x
-            logit = end2end(batch2)
-            assert logit.requires_grad
-            assert logit.grad_fn is not None
-
-            # Did gradients reach the input?
-            logit.sum().backward()
-            assert x.grad is not None
-            assert x.grad.abs().sum().item() > 0
-            print("DeepLIFT readiness test passed")
-
-        id = 'BraTS19_CBICA_AVJ_1'
-        fpath_nii = dpath_nii / id / f'{id}_{modality}.nii.gz'
-        with contextlib.redirect_stdout(io.StringIO()):
-            batch = preproc(fpath_nii, 'mri')
-
-
-
-
-        test_deeplift_ready(e2e, batch)
-"""
 
 
 

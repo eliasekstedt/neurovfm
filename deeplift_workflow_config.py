@@ -18,7 +18,7 @@ create_dirs(
     cfg.dpath_attr,
 )
 
-cfg.fpath_counter = Path('../data/brats19/LGG/BraTS19_TCIA10_410_1/BraTS19_TCIA10_410_1_t1ce.nii.gz')
+cfg.fpath_counter = None #Path('../data/brats19/LGG/BraTS19_TCIA10_410_1/BraTS19_TCIA10_410_1_t1ce.nii.gz')
 
 cfg.modality = 't1ce'
 cfg.ids = ['BraTS19_CBICA_AVJ_1', 'BraTS19_2013_14_1', 'BraTS19_CBICA_ATD_1']
