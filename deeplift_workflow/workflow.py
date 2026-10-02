@@ -56,13 +56,6 @@ class Workflow:
         attr = torch.where(attr == 0, attr.min(), attr)
         attr = (attr - attr.min()) / (attr.max() - attr.min())
 
-        ###
-        assert 'brats19' not in str(fpath_nii)
-        dpath_attr = fpath_nii.parent
-        print(dpath_attr); raise SystemExit
-        torch.save(attr, dpath_attr / f'{id}_{id}.pt')
-        ###
-
         meta['img'] = attr
         return meta
 

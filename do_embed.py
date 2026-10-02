@@ -52,8 +52,8 @@ class Wrapper:
                             modality="mri",
                         )
                         vec = encoder.embed(batch)
-                    ###->
-                        vec = vec.mean(dim=0).detach().cpu().float()
+                        print(vec)
+                        print(vec.shape)
                         torch.save({
                             'vec':vec,
                             'id':patient_id,
@@ -61,7 +61,6 @@ class Wrapper:
                             'origin':origin,
                             'encoder_name':'nvfm',
                         }, fpath_vec)
-                    ###->
 
 
                 new_entry = pd.DataFrame({
@@ -77,7 +76,7 @@ class Wrapper:
                 manifest.to_csv(fpath_manifest, index=False)
 
 
-from config_LHg import *
+from config_embed import *
 Wrapper(
     modalities=cfg.modalities,
     dpath_ckpt=cfg.dpath_ckpt,
