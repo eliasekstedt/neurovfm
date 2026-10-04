@@ -1,6 +1,7 @@
 
 # notes
-how can information be preserved for classifier when .mean() is done between all patches?
+* how can information be preserved for classifier when .mean() is done between all patches?
+    * realized that mean pooling will likely lead to less focused heatmaps. either do simple logit based method or switch to attention pooling.
 
 # do
 * decide if your deeplift implementation actually worked
