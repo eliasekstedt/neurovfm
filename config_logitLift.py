@@ -35,7 +35,7 @@ cfg.fpath_FCState = Path('one_run/model.pth')
 
 cfg.mriseq = 't1ce'
 cfg.device = 'cuda:0'
-cfg.buildkey = 'img'
+cfg.buildkey = 'patch_logits'
 
 
 #cfg.fpath_nii = cfg.dpath_dataRoot / id / f'{id}_t1ce.nii.gz'

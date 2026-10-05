@@ -13,7 +13,8 @@ class LogitFlow:
             id = batch['id']
             loader = self.init_loader(fpath)
             logits = self.gen_logits(loader, model, device)
-            batch['patch_logits'] = logits.repeat(batch['img'].shape[0], 1)
+            batch['patch_logits'] = logits.repeat(1, batch['img'].shape[1])
+
             fpath_logitvec = dpath_logitvec / f"{id}.pt"
             torch.save(batch, fpath_logitvec)
 
@@ -25,18 +26,15 @@ class LogitFlow:
         print('initiating model ...')
         from logitLift.model import FCPart
         model = FCPart(embed_dim, 0.0)
-        model.load_state_dict(torch.load(fpath_FCState, map_location='cuda:0'))
+        model.load_state_dict(torch.load(fpath_FCState, map_location='cuda:0', weights_only=False))
         return model.to(device)
 
     def gen_logits(self, loader, model, device):
+        assert loader.batch_size >= len(loader.dataset)
         model.eval()
         with torch.inference_mode():
-            for idx, x in loader:
+            for x in loader:
                 x = x.to(device)
                 logits = model(x)
-        return logits.squeeze(1).cpu()
+        return logits.cpu()
         
-class UpFlow:
-    """
-    workflow for logited Nx768 imgs to nii
-    """

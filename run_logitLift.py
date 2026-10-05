@@ -32,8 +32,8 @@ if cfg.do_logitFlow:
     from logitLift.logitflow import LogitFlow
     LogitFlow(
         device=cfg.device,
-        fpath_nii=cfg.fpath_nii,
-        dpath_encoderState=cfg.dpath_encoderState,
+        dpath_embvec=cfg.dpath_embvec,
+        dpath_logitvec=cfg.dpath_logitvec,
         fpath_FCState=cfg.fpath_FCState,
     )
 
@@ -41,7 +41,7 @@ if cfg.do_upFlow:
     from logitLift.upflow import UpFlow
     UpFlow(
         buildkey=cfg.buildkey,
-        dpath_logitvec=cfg.dpath_voxlvec,
+        dpath_logitvec=cfg.dpath_logitvec,
         dpath_rebuilt=cfg.dpath_rebuilt,
     )
 #dpath_logitvec=cfg.dpath_logitvec,

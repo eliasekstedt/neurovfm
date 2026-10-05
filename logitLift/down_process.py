@@ -12,7 +12,7 @@ class DownProcess:
             img_arr=img_arr,
             mask_arr=background_mask,
             patch_size=patch_size,
-            rm_bg=False,
+            rm_bg=True,
         )
 
         tokens_tensor = torch.from_numpy(tokens).float()

@@ -12,4 +12,3 @@ class UpFlow:
             
             fpath_rebuilt = dpath_rebuilt / f"{batch['id']}.nii.gz"
             sitk.WriteImage(rebuilt, fpath_rebuilt)
-            raise SystemExit
