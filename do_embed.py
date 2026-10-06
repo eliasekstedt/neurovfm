@@ -1,6 +1,4 @@
 
-
-
 import torch
 import pandas as pd
 from tqdm import tqdm
@@ -76,7 +74,7 @@ class Wrapper:
                 manifest.to_csv(fpath_manifest, index=False)
 
 
-from config_embed import *
+from configure.config_embed import *
 Wrapper(
     modalities=cfg.modalities,
     dpath_ckpt=cfg.dpath_ckpt,

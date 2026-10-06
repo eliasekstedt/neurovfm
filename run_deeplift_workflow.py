@@ -1,4 +1,4 @@
-from deeplift_workflow_config import *
+from configure.deeplift_workflow_config import *
 
 from deeplift_workflow.workflow import Workflow
 Workflow(

@@ -3,7 +3,7 @@ from pathlib import Path
 import cv2
 import nibabel as nib
 
-from config_logitLift import *
+from configure.config_logitLift import *
 
 id = 'BraTS19_CBICA_AOD_1'
 

@@ -9,7 +9,7 @@ and make sure your current undertaking truly is the right path forward.
 """
 
 
-from config_logitLift import *
+from configure.config_logitLift import *
 
 if cfg.do_downFlow:
     from logitLift.downflow import DownFlow

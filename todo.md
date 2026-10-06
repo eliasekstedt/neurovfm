@@ -5,12 +5,13 @@
 * getting explanation methods working is a goal in and of itself ... mostly..
 
 # do
-* decide if your deeplift implementation actually worked
-    * generate attr without up-process, try to see what computations if any can can result in more clear heatmaps.
-* background removal really removes a lot, and im not sure it is necessary. how about try generating new features without removing bg.
+* implement deeplift workflow for attention model
 * look at how others have implemented DeepLift with 3d vision transformers
 * read about deeplift, check their code, use copilot to understand
 
 
 # done
 * build DeepLift framework that includes up/down processing
+* decide if your deeplift implementation actually worked
+    * generate attr without up-process, try to see what computations if any can can result in more clear heatmaps.
+* background removal really removes a lot, and im not sure it is necessary. how about try generating new features without removing bg.
