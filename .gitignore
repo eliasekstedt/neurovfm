@@ -24,6 +24,6 @@ ckpt.tar.gz
 **/.vscode/
 **/run/
 **/one_run/
-**/attenzione_workflow/
+**/one_run_attenzione/
 **/*.nii.gz
 **/*.nii

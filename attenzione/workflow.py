@@ -6,6 +6,8 @@ import io
 
 from attenzione.encoder import Encoder
 from attenzione.end2end import End2End, FCPart, ModelWrapper
+from attenzione.up_process import UpProcess
+from attenzione.down_process import DownProcess
 
 
 class Workflow:
@@ -15,7 +17,7 @@ class Workflow:
             fpath_nii = dpath_nii / id / f'{id}_{modality}.nii.gz'
             meta_for_deeplift = self.get_meta_for_deeplift(fpath_nii)
             meta = self.run_captum(model, meta_for_deeplift, fpath_nii, fpath_counter)
-            up_process = UpProcess(meta)
+            up_process = UpProcess(meta, 'img')
             rebuilt = up_process.reconstruct_original_geometry()
             sitk.WriteImage(rebuilt, dpath_attr / f'rebuilt_{id}.nii.gz')
 
